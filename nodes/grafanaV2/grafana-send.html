@@ -1,0 +1,80 @@
+<script type="text/javascript">
+  RED.nodes.registerType('grafana-send', {
+    category: 'Grafana',
+    color: '#FF8C00',
+    defaults: {
+      name: {value: ""},
+      grafanaUrl: {value: "", required: true},
+      apiToken: {value: "", required: true},
+      datasourceName: {value: "", required: true},
+      measurement: {value: "sensor_data"}
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "arrow-right.png",
+    label: function() {
+      return this.name || "Grafana Send";
+    },
+    oneditprepare: function() {
+      // Configuration de l'éditeur
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="grafana-send">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Nom</label>
+        <input type="text" id="node-input-name" placeholder="Nom du nœud">
+    </div>
+    <div class="form-row">
+        <label for="node-input-grafanaUrl"><i class="icon-globe"></i> URL Grafana</label>
+        <input type="text" id="node-input-grafanaUrl" placeholder="http://localhost:3000">
+    </div>
+    <div class="form-row">
+        <label for="node-input-apiToken"><i class="icon-key"></i> Token API</label>
+        <input type="password" id="node-input-apiToken" placeholder="glsa_xxxxxxxxxxxxxxxx">
+    </div>
+    <div class="form-row">
+        <label for="node-input-datasourceName"><i class="icon-database"></i> Datasource UID</label>
+        <input type="text" id="node-input-datasourceName" placeholder="influxdb-uid">
+    </div>
+    <div class="form-row">
+        <label for="node-input-measurement"><i class="icon-tag"></i> Measurement</label>
+        <input type="text" id="node-input-measurement" placeholder="sensor_data">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="grafana-send">
+    <p>Envoie des données vers une datasource Grafana (InfluxDB).</p>
+
+    <h3>Entrées</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object | number | string</span></dt>
+        <dd>Les données à envoyer à Grafana. Peut être un objet avec plusieurs champs ou une valeur simple.</dd>
+    </dl>
+
+    <h3>Sorties</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>Le message original avec les informations de réponse Grafana ajoutées.</dd>
+        <dt>grafanaResponse <span class="property-type">object</span></dt>
+        <dd>Informations sur la réponse de Grafana (status, timestamp, etc.).</dd>
+    </dl>
+
+    <h3>Configuration</h3>
+    <p><b>URL Grafana</b> : L'URL de votre instance Grafana (ex: http://localhost:3000)</p>
+    <p><b>Token API</b> : Token d'API Grafana avec permissions d'écriture</p>
+    <p><b>Datasource UID</b> : L'UID de la datasource InfluxDB dans Grafana</p>
+    <p><b>Measurement</b> : Nom de la mesure InfluxDB (par défaut: sensor_data)</p>
+
+    <h3>Exemples</h3>
+    <p>Envoyer une valeur simple :</p>
+    <pre>msg.payload = 25.6;</pre>
+
+    <p>Envoyer plusieurs valeurs :</p>
+    <pre>msg.payload = {
+    temperature: 25.6,
+    humidity: 65.2,
+    location: "salon"
+};</pre>
+</script>

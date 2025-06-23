@@ -1,0 +1,31 @@
+{
+  "name": "node-red-contrib-grafana-connector",
+  "version": "1.0.0",
+  "description": "Nœuds Node-RED pour envoyer des données à Grafana et recevoir des notifications",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "node-red": {
+    "nodes": {
+      "grafana-send": "nodes/grafana-send.js",
+      "grafana-receive": "nodes/grafana-receive.js"
+    }
+  },
+  "keywords": [
+    "node-red",
+    "grafana",
+    "monitoring",
+    "dashboard",
+    "notifications"
+  ],
+  "author": "Votre Nom",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/votre-username/node-red-contrib-grafana-connector"
+  }
+}
