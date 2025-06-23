@@ -1,0 +1,148 @@
+[
+  {
+    "id": "grafana-live-flow",
+    "type": "tab",
+    "label": "Grafana Live WebSocket",
+    "disabled": false,
+    "info": "Exemple de flux pour communiquer avec Grafana via WebSocket"
+  },
+  {
+    "id": "inject-node",
+    "type": "inject",
+    "z": "grafana-live-flow",
+    "name": "Envoyer données toutes les 5s",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "5",
+    "crontab": "",
+    "once": true,
+    "onceDelay": "1",
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 190,
+    "y": 120,
+    "wires": [
+      [
+        "function-node"
+      ]
+    ]
+  },
+  {
+    "id": "function-node",
+    "type": "function",
+    "z": "grafana-live-flow",
+    "name": "Générer métriques",
+    "func": "// Générer des valeurs aléatoires pour simuler des métriques\nconst temperature = Math.round((20 + Math.random() * 10) * 10) / 10;\nconst humidity = Math.round((40 + Math.random() * 30) * 10) / 10;\nconst pressure = Math.round((1000 + Math.random() * 50) * 10) / 10;\n\nmsg.payload = {\n    timestamp: Date.now(),\n    temperature: temperature,\n    humidity: humidity,\n    pressure: pressure,\n    status: temperature > 25 ? \"high\" : \"normal\"\n};\n\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 440,
+    "y": 120,
+    "wires": [
+      [
+        "grafana-out",
+        "debug"
+      ]
+    ]
+  },
+  {
+    "id": "grafana-out",
+    "type": "grafana-live-out",
+    "z": "grafana-live-flow",
+    "name": "Envoi à Grafana",
+    "grafanaUrl": "http://localhost:3000",
+    "apiKey": "YOUR_GRAFANA_API_KEY",
+    "channel": "custom/sensors",
+    "topic": "environmental",
+    "x": 690,
+    "y": 120,
+    "wires": []
+  },
+  {
+    "id": "debug",
+    "type": "debug",
+    "z": "grafana-live-flow",
+    "name": "Debug données",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 690,
+    "y": 180,
+    "wires": []
+  },
+  {
+    "id": "grafana-in",
+    "type": "grafana-live-in",
+    "z": "grafana-live-flow",
+    "name": "Écouter alertes Grafana",
+    "grafanaUrl": "http://localhost:3000",
+    "apiKey": "YOUR_GRAFANA_API_KEY",
+    "channel": "grafana/alerting/notification",
+    "x": 200,
+    "y": 260,
+    "wires": [
+      [
+        "handle-alert",
+        "debug-alert"
+      ]
+    ]
+  },
+  {
+    "id": "handle-alert",
+    "type": "function",
+    "z": "grafana-live-flow",
+    "name": "Traiter alerte",
+    "func": "// Extraire les informations pertinentes de l'alerte\nconst alertData = msg.payload;\n\n// Créer un message formaté pour notification\nmsg.payload = {\n    title: `Alerte Grafana: ${alertData.title || 'Sans titre'}`,\n    message: alertData.message || 'Aucun détail disponible',\n    state: alertData.state || 'unknown',\n    timestamp: new Date().toISOString()\n};\n\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 450,
+    "y": 260,
+    "wires": [
+      [
+        "notification"
+      ]
+    ]
+  },
+  {
+    "id": "notification",
+    "type": "ui_toast",
+    "z": "grafana-live-flow",
+    "position": "top right",
+    "displayTime": "5",
+    "highlight": "red",
+    "sendall": false,
+    "outputs": 0,
+    "ok": "OK",
+    "cancel": "",
+    "topic": "",
+    "name": "Notification Alerte",
+    "x": 690,
+    "y": 260,
+    "wires": []
+  },
+  {
+    "id": "debug-alert",
+    "type": "debug",
+    "z": "grafana-live-flow",
+    "name": "Debug alertes",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 450,
+    "y": 320,
+    "wires": []
+  }
+]

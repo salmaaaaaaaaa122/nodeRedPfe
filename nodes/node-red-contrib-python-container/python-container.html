@@ -1,0 +1,123 @@
+<!-- python-container.html - Interface utilisateur -->
+<script type="text/javascript">
+  RED.nodes.registerType('python-container', {
+    category: 'function',
+    color: '#3776ab',
+    defaults: {
+      name: {value: ""},
+      pythonLibraries: {value: ""},
+      pythonCode: {value: "# Votre code Python ici\n# Variables disponibles:\n# - payload: données du nœud précédent\n# - topic: sujet du message\n# - timestamp: horodatage\n# - previous_result: alias pour payload\n\n# Exemple:\nresult = f\"Résultat traité: {payload}\"\nprint(f\"Traitement de: {payload}\")"},
+      containerImage: {value: "python:3.9-slim"},
+      timeout: {value: 30000, validate: RED.validators.number()}
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "python.png",
+    label: function() {
+      return this.name || "Python Container";
+    },
+    labelStyle: function() {
+      return this.name ? "node_label_italic" : "";
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="python-container">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Nom</label>
+        <input type="text" id="node-input-name" placeholder="Nom du nœud">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-containerImage"><i class="fa fa-docker"></i> Image Docker</label>
+        <input type="text" id="node-input-containerImage" placeholder="python:3.9-slim">
+        <div class="form-tips">Image Docker à utiliser (ex: python:3.9-slim, python:3.11, etc.)</div>
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-pythonLibraries"><i class="fa fa-book"></i> Bibliothèques Python</label>
+        <input type="text" id="node-input-pythonLibraries" placeholder="requests, pandas, numpy">
+        <div class="form-tips">Bibliothèques Python séparées par des virgules (ex: requests, pandas, numpy)</div>
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-timeout"><i class="fa fa-clock-o"></i> Timeout (ms)</label>
+        <input type="number" id="node-input-timeout" placeholder="30000">
+        <div class="form-tips">Timeout d'exécution en millisecondes (défaut: 30000)</div>
+    </div>
+
+    <div class="form-row" style="margin-bottom: 0px;">
+        <label for="node-input-pythonCode" style="margin-bottom: 10px;"><i class="fa fa-code"></i> Code Python</label>
+        <div style="height: 300px; min-height:120px;" class="node-text-editor" id="node-input-pythonCode"></div>
+    </div>
+
+    <div class="form-tips">
+        <strong>Variables disponibles dans votre code:</strong><br>
+        • <code>payload</code>: données du nœud précédent<br>
+        • <code>topic</code>: sujet du message<br>
+        • <code>timestamp</code>: horodatage<br>
+        • <code>previous_result</code>: alias pour payload<br><br>
+        <strong>Variable de sortie:</strong><br>
+        • Définissez <code>result</code> pour spécifier la sortie, sinon <code>payload</code> sera utilisé
+    </div>
+</script>
+
+<script type="text/html" data-help-name="python-container">
+    <p>Ce nœud exécute du code Python dans un conteneur Docker isolé.</p>
+
+    <h3>Entrées</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">any</span></dt>
+        <dd>Les données à traiter par le code Python</dd>
+        <dt>topic <span class="property-type">string</span></dt>
+        <dd>Le sujet du message</dd>
+    </dl>
+
+    <h3>Sorties</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">any</span></dt>
+        <dd>Le résultat du code Python (variable 'result' ou 'payload' original)</dd>
+        <dt>topic <span class="property-type">string</span></dt>
+        <dd>Le sujet du message</dd>
+        <dt>pythonOutput <span class="property-type">string</span></dt>
+        <dd>La sortie standard du script Python</dd>
+        <dt>pythonErrors <span class="property-type">string</span></dt>
+        <dd>Les erreurs du script Python</dd>
+    </dl>
+
+    <h3>Configuration</h3>
+    <p><strong>Image Docker:</strong> Spécifiez l'image Python à utiliser (défaut: python:3.9-slim)</p>
+    <p><strong>Bibliothèques Python:</strong> Liste des packages pip à installer, séparés par des virgules</p>
+    <p><strong>Code Python:</strong> Le code à exécuter. Les variables disponibles sont:
+        <code>payload</code>, <code>topic</code>, <code>timestamp</code>, et <code>previous_result</code></p>
+    <p><strong>Timeout:</strong> Durée maximale d'exécution en millisecondes</p>
+
+    <h3>Détails</h3>
+    <p>Ce nœud crée un conteneur Docker temporaire pour chaque exécution, garantissant l'isolation
+        et la sécurité. Le conteneur est automatiquement supprimé après l'exécution.</p>
+
+    <h3>Exemple de code</h3>
+    <pre><code># Traitement simple
+result = f"Traité: {payload}"
+
+# Avec bibliothèques (ajoutez 'requests' dans les bibliothèques)
+import requests
+response = requests.get(f"https://api.example.com/data/{payload}")
+result = response.json()
+
+# Traitement de données (ajoutez 'pandas' dans les bibliothèques)
+import pandas as pd
+df = pd.DataFrame(payload)
+result = df.describe().to_dict()
+    </code></pre>
+
+    <h3>Prérequis</h3>
+    <p>Docker doit être installé et accessible depuis Node-RED.</p>
+</script>
+
+<style>
+    .node-text-editor {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+</style>

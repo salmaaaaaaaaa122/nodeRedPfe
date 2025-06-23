@@ -1,0 +1,191 @@
+<!-- python-fixed.html - Éditeur Python correctement configuré -->
+<script type="text/javascript">
+  RED.nodes.registerType('python', {
+    category: 'function',
+    color: '#3776ab',
+    defaults: {
+      name: {value: ""},
+      pythonLibraries: {value: ""},
+      pythonCode: {value: "# Votre code Python ici\n# Variables disponibles:\n# - payload: données du nœud précédent\n# - topic: sujet du message\n# - timestamp: horodatage\n# - previous_result: alias pour payload\n\n# Exemple:\nresult = f\"Résultat traité: {payload}\"\nprint(f\"Traitement de: {payload}\")"},
+      containerImage: {value: "python:3.9-slim"},
+      timeout: {value: 30000, validate: RED.validators.number()}
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "file.svg",
+    label: function() {
+      return this.name || "Python Container";
+    },
+    labelStyle: function() {
+      return this.name ? "node_label_italic" : "";
+    },
+    oneditprepare: function() {
+      var that = this;
+      
+      // Attendre que l'élément soit dans le DOM
+      setTimeout(function() {
+        // Détruire l'éditeur existant s'il y en a un
+        if (that.editor) {
+          that.editor.destroy();
+          delete that.editor;
+        }
+        
+        // Créer le nouvel éditeur
+        that.editor = RED.editor.createEditor({
+          id: 'node-input-pythonCode-editor',
+          mode: 'ace/mode/python',
+          value: $("#node-input-pythonCode").val() || that.pythonCode,
+          globals: {
+            msg:true,
+            context:true,
+            RED:true,
+            util:true,
+            flow:true,
+            global:true,
+            console:true,
+            Buffer:true,
+            setTimeout:true,
+            clearTimeout:true,
+            setInterval:true,
+            clearInterval:true
+          }
+        });
+        
+        // Configuration de l'éditeur ACE
+        var aceEditor = that.editor.getSession();
+        aceEditor.setUseWrapMode(true);
+        aceEditor.setWrapLimitRange(null, null);
+        
+        // Permettre le copier-coller
+        that.editor.setOptions({
+          enableBasicAutocompletion: true,
+          enableSnippets: true,
+          enableLiveAutocompletion: true,
+          fontSize: "12px",
+          showPrintMargin: false
+        });
+        
+        // Focus sur l'éditeur pour permettre le copier-coller
+        setTimeout(function() {
+          that.editor.focus();
+        }, 100);
+        
+      }, 100);
+    },
+    oneditsave: function() {
+      if (this.editor) {
+        $("#node-input-pythonCode").val(this.editor.getValue());
+        this.editor.destroy();
+        delete this.editor;
+      }
+    },
+    oneditcancel: function() {
+      if (this.editor) {
+        this.editor.destroy();
+        delete this.editor;
+      }
+    },
+    oneditresize: function(size) {
+      if (this.editor) {
+        var rows = $("#dialog-form>div:not(.node-text-editor-row)");
+        var height = $("#dialog-form").height();
+        for (var i=0; i<rows.length; i++) {
+          height -= $(rows[i]).outerHeight(true);
+        }
+        var editorRow = $("#dialog-form>div.node-text-editor-row");
+        height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
+        height = Math.max(150, height); // Hauteur minimum
+        $(".node-text-editor").css("height", height + "px");
+        this.editor.resize();
+      }
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="python">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Nom</label>
+        <input type="text" id="node-input-name" placeholder="Nom du nœud">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-containerImage"><i class="fa fa-cube"></i> Image Docker</label>
+        <input type="text" id="node-input-containerImage" placeholder="python:3.9-slim">
+        <div class="form-tips">Image Docker à utiliser (ex: python:3.9-slim, python:3.11, etc.)</div>
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-pythonLibraries"><i class="fa fa-book"></i> Bibliothèques Python</label>
+        <input type="text" id="node-input-pythonLibraries" placeholder="requests, pandas, numpy">
+        <div class="form-tips">Bibliothèques Python séparées par des virgules</div>
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-timeout"><i class="fa fa-clock-o"></i> Timeout (ms)</label>
+        <input type="number" id="node-input-timeout" placeholder="30000">
+    </div>
+
+    <div class="form-row node-text-editor-row">
+        <label for="node-input-pythonCode-editor"><i class="fa fa-code"></i> Code Python</label>
+        <div class="form-tips" style="margin-bottom: 10px;">
+            <strong>Raccourcis:</strong> Ctrl+C (copier), Ctrl+V (coller), Ctrl+Z (annuler), Ctrl+A (tout sélectionner)
+        </div>
+        <div style="height: 300px; min-height:150px;" class="node-text-editor" id="node-input-pythonCode-editor"></div>
+    </div>
+
+    <!-- Champ caché pour stocker le code -->
+    <input type="hidden" id="node-input-pythonCode"/>
+
+    <div class="form-tips">
+        <strong>Variables disponibles:</strong> payload, topic, timestamp, previous_result<br>
+        <strong>Sortie:</strong> Définissez la variable <code>result</code> pour le résultat de sortie
+    </div>
+</script>
+
+<script type="text/html" data-help-name="python">
+    <p>Exécute du code Python dans un conteneur Docker isolé.</p>
+
+    <h3>Utilisation de l'éditeur</h3>
+    <ul>
+        <li><strong>Copier-Coller:</strong> Cliquez dans l'éditeur puis utilisez Ctrl+V</li>
+        <li><strong>Sélection:</strong> Ctrl+A pour tout sélectionner</li>
+        <li><strong>Autocomplétion:</strong> Ctrl+Espace pour suggestions</li>
+        <li><strong>Recherche:</strong> Ctrl+F pour rechercher</li>
+    </ul>
+
+    <h3>Variables disponibles</h3>
+    <ul>
+        <li><code>payload</code> - données du nœud précédent</li>
+        <li><code>topic</code> - sujet du message</li>
+        <li><code>timestamp</code> - horodatage</li>
+        <li><code>previous_result</code> - alias pour payload</li>
+    </ul>
+
+    <h3>Exemple</h3>
+    <pre><code># Traitement simple
+import json
+result = {
+    "original": payload,
+    "processed": f"Traité: {payload}",
+    "timestamp": timestamp
+}
+print(f"Données traitées: {result}")
+    </code></pre>
+</script>
+
+<style>
+    .node-text-editor-row .node-text-editor {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .node-text-editor-row .ace_editor {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+    }
+
+    .form-tips {
+        font-size: 11px;
+        color: #666;
+        margin-top: 5px;
+    }
+</style>

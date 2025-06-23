@@ -1,0 +1,152 @@
+<!-- Fichier: node-red-contrib-grafana-live/grafana-live-out.html -->
+
+<script type="text/html" data-template-name="grafana-live-out">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Nom</label>
+        <input type="text" id="node-input-name" placeholder="Nom">
+    </div>
+    <div class="form-row">
+        <label for="node-input-grafanaUrl"><i class="fa fa-globe"></i> URL Grafana</label>
+        <input type="text" id="node-input-grafanaUrl" placeholder="http://localhost:3000">
+    </div>
+    <div class="form-row">
+        <label for="node-input-apiKey"><i class="fa fa-key"></i> Clé API</label>
+        <input type="password" id="node-input-apiKey" placeholder="eyJrIjoiT0tTcG1pUlY2RnVKZTFVaDFsNFZXdE9ZWmNrMkZYbk">
+    </div>
+    <div class="form-row">
+        <label for="node-input-channel"><i class="fa fa-exchange"></i> Canal</label>
+        <input type="text" id="node-input-channel" placeholder="custom/channel">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topic"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-input-topic" placeholder="default">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="grafana-live-out">
+    <p>Envoie des messages à Grafana Live via WebSocket.</p>
+
+    <h3>Entrées</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object | string | number</span></dt>
+        <dd>Les données à envoyer à Grafana. Si ce n'est pas un objet, il sera converti en {value: payload}.</dd>
+        <dt class="optional">topic <span class="property-type">string</span></dt>
+        <dd>Si fourni, remplace le topic configuré dans le nœud.</dd>
+    </dl>
+
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>URL Grafana</dt>
+        <dd>L'URL de votre serveur Grafana (ex: http://localhost:3000).</dd>
+        <dt>Clé API</dt>
+        <dd>Une clé API Grafana avec les autorisations appropriées.</dd>
+        <dt>Canal</dt>
+        <dd>Le canal Grafana Live à utiliser (ex: custom/metrics).</dd>
+        <dt>Topic</dt>
+        <dd>Le sujet par défaut pour les messages.</dd>
+    </dl>
+
+    <h3>Détails</h3>
+    <p>Ce nœud utilise l'API Grafana Live pour envoyer des données en temps réel à Grafana via WebSocket.
+        Les données peuvent être visualisées avec des panneaux Grafana configurés pour utiliser une source de données compatible avec Grafana Live.</p>
+
+    <p>Pour que ce nœud fonctionne correctement, assurez-vous que Grafana Live est activé dans votre configuration Grafana.</p>
+</script>
+
+<script type="text/javascript">
+  RED.nodes.registerType('grafana-live-out', {
+    category: 'Grafana U',
+    color: '#8bc34a',
+    defaults: {
+      name: { value: "" },
+      grafanaUrl: { value: "http://localhost:3000", required: true },
+      apiKey: { value: "", required: true },
+      channel: { value: "custom/channel", required: true },
+      topic: { value: "default" }
+    },
+    inputs: 1,
+    outputs: 0,
+    icon: "grafana.png",
+    label: function() {
+      return this.name || "Grafana Out";
+    },
+    paletteLabel: "Grafana Out"
+  });
+</script>
+
+<!-- Fichier: node-red-contrib-grafana-live/grafana-live-in.html -->
+
+<script type="text/html" data-template-name="grafana-live-in">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Nom</label>
+        <input type="text" id="node-input-name" placeholder="Nom">
+    </div>
+    <div class="form-row">
+        <label for="node-input-grafanaUrl"><i class="fa fa-globe"></i> URL Grafana</label>
+        <input type="text" id="node-input-grafanaUrl" placeholder="http://localhost:3000">
+    </div>
+    <div class="form-row">
+        <label for="node-input-apiKey"><i class="fa fa-key"></i> Clé API</label>
+        <input type="password" id="node-input-apiKey" placeholder="eyJrIjoiT0tTcG1pUlY2RnVKZTFVaDFsNFZXdE9ZWmNrMkZYbk">
+    </div>
+    <div class="form-row">
+        <label for="node-input-channel"><i class="fa fa-exchange"></i> Canal</label>
+        <input type="text" id="node-input-channel" placeholder="grafana/dashboard/uid">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="grafana-live-in">
+    <p>Reçoit des messages depuis Grafana Live via WebSocket.</p>
+
+    <h3>Sorties</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>Les données reçues depuis Grafana Live.</dd>
+        <dt>topic <span class="property-type">string</span></dt>
+        <dd>Le canal Grafana Live auquel le nœud est abonné.</dd>
+    </dl>
+
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>URL Grafana</dt>
+        <dd>L'URL de votre serveur Grafana (ex: http://localhost:3000).</dd>
+        <dt>Clé API</dt>
+        <dd>Une clé API Grafana avec les autorisations appropriées.</dd>
+        <dt>Canal</dt>
+        <dd>Le canal Grafana Live auquel s'abonner. Les canaux standard incluent:
+            <ul>
+                <li>grafana/dashboard/uid/[DASHBOARD_UID]</li>
+                <li>grafana/dashboard/[DASHBOARD_UID]/annotations</li>
+                <li>grafana/alerting/notification/[ALERT_ID]</li>
+            </ul>
+        </dd>
+    </dl>
+
+    <h3>Détails</h3>
+    <p>Ce nœud reçoit des événements en temps réel depuis Grafana via WebSocket.
+        Il peut être utilisé pour réagir aux changements de tableau de bord, aux déclenchements
+        d'alertes ou à d'autres événements Grafana.</p>
+
+    <p>Pour que ce nœud fonctionne correctement, assurez-vous que Grafana Live est activé dans
+        votre configuration Grafana.</p>
+</script>
+
+<script type="text/javascript">
+  RED.nodes.registerType('grafana-live-in', {
+    category: 'Grafana U',
+    color: '#8bc34a',
+    defaults: {
+      name: { value: "" },
+      grafanaUrl: { value: "http://localhost:3000", required: true },
+      apiKey: { value: "" },
+      channel: { value: "grafana/dashboard/uid", required: true }
+    },
+    inputs: 0,
+    outputs: 1,
+    icon: "grafana.png",
+    label: function() {
+      return this.name || "Grafana In";
+    },
+    paletteLabel: "Grafana In"
+  });
+</script>

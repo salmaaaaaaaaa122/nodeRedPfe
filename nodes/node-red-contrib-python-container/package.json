@@ -1,0 +1,30 @@
+{
+  "name": "node-red-contrib-python-container",
+  "version": "1.0.0",
+  "description": "Node-RED module pour exécuter du code Python dans des conteneurs Docker",
+  "main": "",
+  "keywords": [
+    "node-red",
+    "python",
+    "docker",
+    "container",
+    "execution"
+  ],
+  "author": "Votre Nom",
+  "license": "MIT",
+  "dependencies": {
+    "uuid": "^9.0.0"
+  },
+  "node-red": {
+    "nodes": {
+      "python-container": "python-container.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/votre-username/node-red-contrib-python-container"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
