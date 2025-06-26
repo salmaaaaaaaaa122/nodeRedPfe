@@ -1,59 +1,86 @@
-
 module.exports = function(RED) {
   const { exec } = require('child_process');
-  const fs = require('fs');
+  const { promisify } = require('util');
+  const fs = require('fs').promises; // Version asynchrone de fs
+  const fsSync = require('fs'); // Pour les vérifications synchrones
   const path = require('path');
   const { v4: uuidv4 } = require('uuid');
+  
+  // Promisifier exec pour utilisation async/await
+  const execAsync = promisify(exec);
   
   function PythonContainerNode(config) {
     RED.nodes.createNode(this, config);
     const node = this;
     
-    // Configuration du nœud
+    // Configuration du nœud (votre structure originale)
     node.pythonLibraries = config.pythonLibraries || '';
     node.pythonCode = config.pythonCode || '';
     node.containerImage = config.containerImage || 'python:3.9-slim';
     node.timeout = parseInt(config.timeout) || 30000;
     
-    node.on('input', function(msg) {
-      node.status({fill:"blue", shape:"dot", text:"Préparation..."});
-      
-      // Créer un ID unique pour cette exécution
+    node.on('input', async function(msg) {
       const executionId = uuidv4();
       const workDir = path.join('/tmp', `python-exec-${executionId}`);
       
+      node.status({fill:"blue", shape:"dot", text:"Préparation..."});
+      
       try {
-        // Créer le répertoire de travail
-        if (!fs.existsSync(workDir)) {
-          fs.mkdirSync(workDir, { recursive: true });
-        }
+        // Étape 1: Préparation asynchrone
+        await prepareExecution(workDir, msg, node, executionId);
         
-        // Préparer les données d'entrée
-        const inputData = {
-          payload: msg.payload,
-          topic: msg.topic,
-          timestamp: new Date().toISOString(),
-          previousResult: msg.payload // Résultat du nœud précédent
-        };
+        // Étape 2: Construction du conteneur (asynchrone)
+        await buildContainer(workDir, executionId, node);
         
-        // Créer le fichier input.json avec les données
-        fs.writeFileSync(
-          path.join(workDir, 'input.json'),
-          JSON.stringify(inputData, null, 2)
-        );
+        // Étape 3: Exécution du conteneur (asynchrone)
+        const result = await runContainer(workDir, executionId, node);
         
-        // Créer le fichier requirements.txt si des bibliothèques sont spécifiées
-        let requirementsContent = '';
-        if (node.pythonLibraries.trim()) {
-          requirementsContent = node.pythonLibraries.split(',')
-          .map(lib => lib.trim())
-          .filter(lib => lib.length > 0)
-          .join('\n');
-        }
-        fs.writeFileSync(path.join(workDir, 'requirements.txt'), requirementsContent);
+        // Étape 4: Traitement du résultat
+        await processResult(workDir, result, msg, node);
         
-        // Créer le script Python principal
-        const pythonScript = `
+        // Étape 5: Nettoyage
+        await cleanup(workDir, executionId);
+        
+      } catch (error) {
+        node.error(`Erreur d'exécution: ${error.message}`);
+        node.status({fill:"red", shape:"dot", text:"Erreur"});
+        await cleanup(workDir, executionId);
+      }
+    });
+    
+    // Fonction de préparation asynchrone
+    async function prepareExecution(workDir, msg, node, executionId) {
+      // Créer le répertoire de travail
+      if (!fsSync.existsSync(workDir)) {
+        await fs.mkdir(workDir, { recursive: true });
+      }
+      
+      // Préparer les données d'entrée
+      const inputData = {
+        payload: msg.payload,
+        topic: msg.topic,
+        timestamp: new Date().toISOString(),
+        previousResult: msg.payload
+      };
+      
+      // Écrire les fichiers de manière asynchrone
+      await fs.writeFile(
+        path.join(workDir, 'input.json'),
+        JSON.stringify(inputData, null, 2)
+      );
+      
+      // Créer requirements.txt
+      let requirementsContent = '';
+      if (node.pythonLibraries.trim()) {
+        requirementsContent = node.pythonLibraries.split(',')
+        .map(lib => lib.trim())
+        .filter(lib => lib.length > 0)
+        .join('\n');
+      }
+      await fs.writeFile(path.join(workDir, 'requirements.txt'), requirementsContent);
+      
+      // Créer le script Python (votre version originale)
+      const pythonScript = `
 import json
 import sys
 import os
@@ -112,11 +139,11 @@ except Exception as e:
     
     sys.exit(1)
 `;
-        
-        fs.writeFileSync(path.join(workDir, 'script.py'), pythonScript);
-        
-        // Créer le Dockerfile
-        const dockerfile = `
+      
+      await fs.writeFile(path.join(workDir, 'script.py'), pythonScript);
+      
+      // Créer le Dockerfile (votre version originale)
+      const dockerfile = `
 FROM ${node.containerImage}
 
 WORKDIR /app
@@ -132,90 +159,92 @@ RUN if [ -s requirements.txt ]; then pip install --no-cache-dir -r requirements.
 # Exécuter le script
 CMD ["python", "script.py"]
 `;
-        fs.writeFileSync(path.join(workDir, 'Dockerfile'), dockerfile);
-        
-        node.status({fill:"yellow", shape:"dot", text:"Construction du conteneur..."});
-        
-        // Construire l'image Docker
-        const buildCommand = `cd ${workDir} && docker build -t python-exec-${executionId} .`;
-        
-        exec(buildCommand, (buildError, buildStdout, buildStderr) => {
-          if (buildError) {
-            node.error(`Erreur de construction: ${buildError.message}`);
-            node.status({fill:"red", shape:"dot", text:"Erreur de construction"});
-            cleanup(workDir, executionId);
-            return;
-          }
-          
-          node.status({fill:"yellow", shape:"dot", text:"Exécution..."});
-          
-          // Exécuter le conteneur
-          const runCommand = `docker run --rm -v ${workDir}:/app python-exec-${executionId}`;
-          
-          const execProcess = exec(runCommand, { timeout: node.timeout }, (runError, runStdout, runStderr) => {
-            // Nettoyer l'image Docker
-            exec(`docker rmi python-exec-${executionId}`, () => {});
-            
-            if (runError) {
-              node.error(`Erreur d'exécution: ${runError.message}`);
-              node.status({fill:"red", shape:"dot", text:"Erreur d'exécution"});
-              cleanup(workDir, executionId);
-              return;
-            }
-            
-            try {
-              // Lire le résultat
-              const outputPath = path.join(workDir, 'output.json');
-              if (fs.existsSync(outputPath)) {
-                const outputData = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
-                
-                if (outputData.success) {
-                  msg.payload = outputData.payload;
-                  msg.topic = outputData.topic;
-                  msg.pythonOutput = runStdout;
-                  msg.pythonErrors = runStderr;
-                  
-                  node.status({fill:"green", shape:"dot", text:"Succès"});
-                  node.send(msg);
-                } else {
-                  node.error(`Erreur Python: ${outputData.error}`);
-                  node.status({fill:"red", shape:"dot", text:"Erreur Python"});
-                }
-              } else {
-                node.error("Fichier de sortie non trouvé");
-                node.status({fill:"red", shape:"dot", text:"Pas de sortie"});
-              }
-            } catch (parseError) {
-              node.error(`Erreur de parsing: ${parseError.message}`);
-              node.status({fill:"red", shape:"dot", text:"Erreur de parsing"});
-            }
-            
-            cleanup(workDir, executionId);
-          });
-          
-          // Gérer le timeout
-          setTimeout(() => {
-            if (!execProcess.killed) {
-              execProcess.kill();
-              node.error("Timeout d'exécution");
-              node.status({fill:"red", shape:"dot", text:"Timeout"});
-              cleanup(workDir, executionId);
-            }
-          }, node.timeout);
+      await fs.writeFile(path.join(workDir, 'Dockerfile'), dockerfile);
+    }
+    
+    // Fonction de construction asynchrone
+    async function buildContainer(workDir, executionId, node) {
+      node.status({fill:"yellow", shape:"dot", text:"Construction du conteneur..."});
+      
+      const buildCommand = `cd ${workDir} && docker build -t python-exec-${executionId} .`;
+      
+      try {
+        const { stdout, stderr } = await execAsync(buildCommand, {
+          timeout: node.timeout
         });
         
+        console.log(`Build stdout: ${stdout}`);
+        if (stderr) console.log(`Build stderr: ${stderr}`);
+        
       } catch (error) {
-        node.error(`Erreur de préparation: ${error.message}`);
-        node.status({fill:"red", shape:"dot", text:"Erreur de préparation"});
-        cleanup(workDir, executionId);
+        throw new Error(`Erreur de construction: ${error.message}`);
       }
-    });
+    }
     
-    // Fonction de nettoyage
-    function cleanup(workDir, executionId) {
+    // Fonction d'exécution asynchrone
+    async function runContainer(workDir, executionId, node) {
+      node.status({fill:"yellow", shape:"dot", text:"Exécution..."});
+      
+      const runCommand = `docker run --rm -v ${workDir}:/app python-exec-${executionId}`;
+      
       try {
-        if (fs.existsSync(workDir)) {
-          fs.rmSync(workDir, { recursive: true, force: true });
+        const { stdout, stderr } = await execAsync(runCommand, {
+          timeout: node.timeout
+        });
+        
+        // Nettoyer l'image Docker de manière asynchrone (non bloquant)
+        execAsync(`docker rmi python-exec-${executionId}`).catch(() => {
+          // Ignorer les erreurs de nettoyage d'image
+        });
+        
+        return { stdout, stderr, success: true };
+        
+      } catch (error) {
+        // Nettoyer l'image même en cas d'erreur
+        execAsync(`docker rmi python-exec-${executionId}`).catch(() => {});
+        throw new Error(`Erreur d'exécution: ${error.message}`);
+      }
+    }
+    
+    // Fonction de traitement du résultat asynchrone
+    async function processResult(workDir, runResult, msg, node) {
+      try {
+        const outputPath = path.join(workDir, 'output.json');
+        
+        // Vérifier si le fichier existe
+        if (!fsSync.existsSync(outputPath)) {
+          throw new Error("Fichier de sortie non trouvé");
+        }
+        
+        // Lire le résultat de manière asynchrone
+        const outputContent = await fs.readFile(outputPath, 'utf8');
+        const outputData = JSON.parse(outputContent);
+        
+        if (outputData.success) {
+          // Succès: mettre à jour le message et l'envoyer
+          msg.payload = outputData.payload;
+          msg.topic = outputData.topic;
+          msg.pythonOutput = runResult.stdout;
+          msg.pythonErrors = runResult.stderr;
+          
+          node.status({fill:"green", shape:"dot", text:"Succès"});
+          node.send(msg); // Envoyer au nœud suivant
+          
+        } else {
+          throw new Error(`Erreur Python: ${outputData.error}`);
+        }
+        
+      } catch (parseError) {
+        throw new Error(`Erreur de parsing: ${parseError.message}`);
+      }
+    }
+    
+    // Fonction de nettoyage asynchrone
+    async function cleanup(workDir, executionId) {
+      return;
+      try {
+        if (fsSync.existsSync(workDir)) {
+          await fs.rmdir(workDir, { recursive: true, force: true });
         }
       } catch (cleanupError) {
         console.error(`Erreur de nettoyage: ${cleanupError.message}`);

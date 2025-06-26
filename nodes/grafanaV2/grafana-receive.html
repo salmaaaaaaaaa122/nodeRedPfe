@@ -1,0 +1,89 @@
+<script type="text/javascript">
+  RED.nodes.registerType('grafana-receive', {
+    category: 'Grafana',
+    color: '#32CD32',
+    defaults: {
+      name: {value: ""},
+      port: {value: 1881, validate: RED.validators.number()},
+      path: {value: "/grafana-webhook", required: true}
+    },
+    inputs: 0,
+    outputs: 1,
+    icon: "arrow-left.png",
+    label: function() {
+      return this.name || "Grafana Receive";
+    },
+    oneditprepare: function() {
+      // Configuration de l'éditeur
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="grafana-receive">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Nom</label>
+        <input type="text" id="node-input-name" placeholder="Nom du nœud">
+    </div>
+    <div class="form-row">
+        <label for="node-input-port"><i class="icon-globe"></i> Port</label>
+        <input type="number" id="node-input-port" placeholder="1881">
+    </div>
+    <div class="form-row">
+        <label for="node-input-path"><i class="icon-link"></i> Chemin</label>
+        <input type="text" id="node-input-path" placeholder="/grafana-webhook">
+    </div>
+    <div class="form-row">
+        <div style="background-color: #f0f8ff; padding: 10px; border-radius: 5px; margin-top: 10px;">
+            <strong>URL du Webhook :</strong><br>
+            <code>http://votre-ip:1880<span id="webhook-path">/grafana-webhook</span></code>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="grafana-receive">
+    <p>Reçoit des notifications et alertes depuis Grafana via webhook.</p>
+
+    <h3>Sorties</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>Les données complètes du webhook Grafana (alertes, annotations, etc.).</dd>
+        <dt>alerts <span class="property-type">array</span></dt>
+        <dd>Tableau des alertes parsées avec status, labels, annotations.</dd>
+        <dt>grafanaWebhook <span class="property-type">object</span></dt>
+        <dd>Métadonnées sur le webhook (timestamp, source, type).</dd>
+    </dl>
+
+    <h3>Configuration</h3>
+    <p><b>Port</b> : Port d'écoute (généralement 1880 pour Node-RED)</p>
+    <p><b>Chemin</b> : Chemin de l'URL webhook (ex: /grafana-webhook)</p>
+
+    <h3>Configuration Grafana</h3>
+    <p>Dans Grafana, configurez un Contact Point avec :</p>
+    <ul>
+        <li><b>Type</b> : Webhook</li>
+        <li><b>URL</b> : http://votre-ip:1880/grafana-webhook</li>
+        <li><b>Method</b> : POST</li>
+        <li><b>Content-Type</b> : application/json</li>
+    </ul>
+
+    <h3>Exemple de payload</h3>
+    <pre>{
+  "alerts": [{
+    "status": "firing",
+    "labels": {
+      "alertname": "HighTemperature",
+      "instance": "sensor1"
+    },
+    "annotations": {
+      "summary": "Température élevée détectée"
+    }
+  }]
+}</pre>
+</script>
+
+<script>
+  // Mettre à jour l'URL d'exemple quand le chemin change
+  $('#node-input-path').on('input', function() {
+    $('#webhook-path').text($(this).val() || '/grafana-webhook');
+  });
+</script>

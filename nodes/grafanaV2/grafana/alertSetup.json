@@ -1,0 +1,245 @@
+[
+  {
+    "uid": "temp-high-alert",
+    "title": "Temperature High Alert",
+    "condition": "C",
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 300,
+          "to": 0
+        },
+        "datasourceUid": "influxdb-uid",
+        "model": {
+          "expr": "SELECT last(\"temperature\") FROM \"sensor_data\" WHERE $timeFilter",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "rawQuery": true,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "B",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "A",
+          "hide": false,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "reducer": "last",
+          "refId": "B",
+          "type": "reduce"
+        }
+      },
+      {
+        "refId": "C",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "B > 30",
+          "hide": false,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "noDataState": "NoData",
+    "execErrState": "Alerting",
+    "for": "1m",
+    "annotations": {
+      "description": "Temperature has exceeded 30 degrees for more than 1 minute",
+      "summary": "High temperature detected"
+    },
+    "labels": {
+      "severity": "critical",
+      "team": "infrastructure",
+      "alert_type": "weather"
+    },
+    "folderUID": "nodered-alerts-folder",
+    "ruleGroup": "Weather Alerts",
+    "intervalSeconds": 60
+  },
+  {
+    "uid": "humidity-high-alert",
+    "title": "Humidity High Alert",
+    "condition": "C",
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 300,
+          "to": 0
+        },
+        "datasourceUid": "influxdb-uid",
+        "model": {
+          "expr": "SELECT last(\"humidity\") FROM \"sensor_data\" WHERE $timeFilter",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "rawQuery": true,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "B",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "A",
+          "hide": false,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "reducer": "last",
+          "refId": "B",
+          "type": "reduce"
+        }
+      },
+      {
+        "refId": "C",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "B > 80",
+          "hide": false,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "noDataState": "NoData",
+    "execErrState": "Alerting",
+    "for": "2m",
+    "annotations": {
+      "description": "Humidity has exceeded 80% for more than 2 minutes",
+      "summary": "High humidity detected"
+    },
+    "labels": {
+      "severity": "warning",
+      "team": "infrastructure",
+      "alert_type": "weather"
+    },
+    "folderUID": "nodered-alerts-folder",
+    "ruleGroup": "Weather Alerts",
+    "intervalSeconds": 60
+  },
+  {
+    "uid": "node-red-test-value-alert",
+    "title": "NodeRED Test Value Alert",
+    "condition": "C",
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 180,
+          "to": 0
+        },
+        "datasourceUid": "influxdb-uid",
+        "model": {
+          "expr": "SELECT last(\"value\") FROM \"sensor_data\" WHERE \"test_source\" = 'node-red-http' AND $timeFilter",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "rawQuery": true,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "B",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "A",
+          "hide": false,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "reducer": "last",
+          "refId": "B",
+          "type": "reduce"
+        }
+      },
+      {
+        "refId": "C",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "B > 75",
+          "hide": false,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "noDataState": "NoData",
+    "execErrState": "Alerting",
+    "for": "30s",
+    "annotations": {
+      "description": "Test value from NodeRED has exceeded 75",
+      "summary": "NodeRED test value high"
+    },
+    "labels": {
+      "severity": "warning",
+      "team": "development",
+      "alert_type": "test"
+    },
+    "folderUID": "nodered-alerts-folder",
+    "ruleGroup": "Development Tests",
+    "intervalSeconds": 30
+  }
+]
