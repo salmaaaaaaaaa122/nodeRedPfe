@@ -1,0 +1,211 @@
+# Capitales d'Afrique
+
+```html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capitales d'Afrique</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #FFF1E6;
+            background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><path d="M25,25 L75,25 L75,75 L25,75 Z" stroke="%23D2691E" stroke-width="2" fill="none" stroke-dasharray="5,5" /></svg>');
+            color: #8B4513;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #B7410E;
+            font-size: 3rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            border-bottom: 3px solid #D2691E;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .capitals-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .capital-card {
+            background-color: #FFEBCD;
+            border: 2px solid #CD853F;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .capital-card:hover {
+            transform: translateY(-5px);
+            background-color: #FFE4C4;
+        }
+        
+        .country {
+            font-weight: bold;
+            color: #8B4513;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            border-bottom: 1px dashed #D2691E;
+            padding-bottom: 5px;
+        }
+        
+        .capital {
+            color: #A0522D;
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 600px) {
+            .capitals-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-style: italic;
+            color: #A0522D;
+            border-top: 1px solid #D2691E;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Capitales d'Afrique</h1>
+    
+    <div class="capitals-container">
+        <div class="capital-card">
+            <div class="country">Afrique du Sud</div>
+            <div class="capital">Pretoria (administrative)<br>Le Cap (législative)<br>Bloemfontein (judiciaire)</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Algérie</div>
+            <div class="capital">Alger</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Angola</div>
+            <div class="capital">Luanda</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Bénin</div>
+            <div class="capital">Porto-Novo</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Botswana</div>
+            <div class="capital">Gaborone</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Burkina Faso</div>
+            <div class="capital">Ouagadougou</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Burundi</div>
+            <div class="capital">Gitega</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Cameroun</div>
+            <div class="capital">Yaoundé</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Cap-Vert</div>
+            <div class="capital">Praia</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">République centrafricaine</div>
+            <div class="capital">Bangui</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Comores</div>
+            <div class="capital">Moroni</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">République du Congo</div>
+            <div class="capital">Brazzaville</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">République démocratique du Congo</div>
+            <div class="capital">Kinshasa</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Côte d'Ivoire</div>
+            <div class="capital">Yamoussoukro</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Djibouti</div>
+            <div class="capital">Djibouti</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Égypte</div>
+            <div class="capital">Le Caire</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Érythrée</div>
+            <div class="capital">Asmara</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Eswatini (Swaziland)</div>
+            <div class="capital">Mbabane</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Éthiopie</div>
+            <div class="capital">Addis-Abeba</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Gabon</div>
+            <div class="capital">Libreville</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Gambie</div>
+            <div class="capital">Banjul</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Ghana</div>
+            <div class="capital">Accra</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Guinée</div>
+            <div class="capital">Conakry</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Guinée-Bissau</div>
+            <div class="capital">Bissau</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="country">Guinée équatoriale</div>
+            <div class="capital">Malabo</div>
+        </div>
+        
+        <div class="capital-card">
+            <div class="

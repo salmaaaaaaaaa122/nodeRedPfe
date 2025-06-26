@@ -71,7 +71,7 @@ module.exports = function(RED) {
         }, 3000);
         
       } catch (error) {
-        node.error(`ssdErreur envoi Grafana: ${error.message}`, msg);
+        node.error(`Erreur envoi Grafana: ${error.message}`, msg);
         node.status({fill: "red", shape: "ring", text: "Erreur"});
         
         setTimeout(() => {
